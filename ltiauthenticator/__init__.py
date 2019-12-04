@@ -55,11 +55,11 @@ class LTILaunchValidator:
         # a replay attack - we won't have nonce lists from back then. This would allow users
         # who can control / know when our process restarts to trivially do replay attacks.
         oauth_timestamp = int(float(args['oauth_timestamp']))
-        if (
-                int(time.time()) - oauth_timestamp > 30
-                or oauth_timestamp < LTILaunchValidator.PROCESS_START_TIME
-        ):
-            raise web.HTTPError(401, "oauth_timestamp too old")
+        if oauth_timestamp < LTILaunchValidator.PROCESS_START_TIME:
+            raise web.HTTPError(401, "invalid oauth_timestamp {}: older than hub start time".format(oauth_timestamp))
+        elif int(time.time()) - oauth_timestamp > 30:
+            raise web.HTTPError(401, "invalid oauth_timestamp {}: older than 30s".format(oauth_timestamp))
+
 
         if 'oauth_nonce' not in args:
             raise web.HTTPError(401, 'oauth_nonce missing')
